@@ -1,4 +1,5 @@
-import { PathAction, initialState, pathReducer } from '@/store/reducers/pathReducer'
+import { initialState, pathReducer } from '@/store/reducers/pathReducer'
+import { PathAction } from '@/types/types'
 
 describe('pathReducer', () => {
   it('should return the initial state', () => {

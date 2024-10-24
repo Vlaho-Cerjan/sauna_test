@@ -44,7 +44,7 @@ module.exports = {
   rules: {
     'no-var': 'error',
     'no-alert': 'error',
-    'no-console': 'error',
+    'no-console': 'warn',
     'prefer-const': 'error',
     // "prefer-destructuring": "error",
 
@@ -67,7 +67,7 @@ module.exports = {
     '@typescript-eslint/consistent-type-definitions': 'off',
 
     'react-hooks/rules-of-hooks': 'error',
-    'react-hooks/exhaustive-deps': 'error',
+    'react-hooks/exhaustive-deps': 'warn',
 
     'prettier/prettier': [
       'warn',

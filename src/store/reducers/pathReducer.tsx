@@ -1,15 +1,4 @@
-type PathState = {
-  word: string
-  pathCharacters: string
-  loading: boolean
-  errorMessage: string
-}
-
-type PathAction =
-  | { type: 'SET_WORD'; payload: string }
-  | { type: 'SET_PATH_CHARACTERS'; payload: string }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_ERROR'; payload: string }
+import { PathAction, PathState } from '@/types/types'
 
 const initialState: PathState = {
   word: '',
@@ -34,4 +23,3 @@ const pathReducer = (state: PathState, action: PathAction): PathState => {
 }
 
 export { initialState, pathReducer }
-export type { PathAction, PathState }

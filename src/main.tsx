@@ -4,8 +4,8 @@ import { createRoot } from 'react-dom/client'
 import { App } from '@/App'
 
 import './index.css'
+
 // Uncomment if you want to see the Lighthouse report in the console
-import reportWebVitals from './reportWebVitals'
 
 const root = createRoot(document.getElementById('root') as HTMLElement)
 
@@ -30,4 +30,4 @@ if (import.meta.env.MODE === 'test') {
 }
 
 // eslint-disable-next-line no-console
-reportWebVitals(console.log)
+// reportWebVitals(console.log)

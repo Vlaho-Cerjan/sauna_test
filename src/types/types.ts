@@ -21,4 +21,3 @@ type PathAction =
   | { type: 'SET_ERROR'; payload: string }
 
 export type { Bounds, Direction, PathAction, PathState }
-

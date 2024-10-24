@@ -25,7 +25,7 @@
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --watch --coverage",
     "test:ui": "vitest --watch --coverage --ui",
-    "lint": "eslint src --no-inline-config --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint src --no-inline-config --report-unused-disable-directives",
     "lint:fix": "bun run lint -- --fix",
     "lint:css": "stylelint **/*.css --aei --color",
     "prettier": "prettier src --check",

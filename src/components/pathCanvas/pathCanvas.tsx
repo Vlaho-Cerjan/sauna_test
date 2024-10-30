@@ -1,135 +1,129 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback, useEffect, useRef } from 'react'
 
 import { cellSize } from '@/constants/constants'
-import { Bounds, Direction } from '@/types/types'
+import { Bounds, PathSegment } from '@/types/types'
 
 type PathCanvasProps = {
-  path: string[][]
-  MaterialColors: string[]
+  pathSegments: PathSegment[]
   minMax: Bounds
-  setWord: (word: string) => void
-  setPathCharacters: (pathCharacters: string) => void
 }
 
-const PathCanvas: React.FC<PathCanvasProps> = ({
-  path,
-  MaterialColors,
-  minMax,
-  setWord,
-  setPathCharacters,
-}) => {
+const PathCanvas: React.FC<PathCanvasProps> = ({ pathSegments, minMax }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const animationRef = useRef<number | null>(null)
 
   const drawPathAnimated = useCallback(
     (ctx: CanvasRenderingContext2D) => {
-      let [x, y] = [10, 50]
-      let direction: Direction = 'right'
-      let currentRow = 0
-      let currentColumn = 0
-      const drawNext = true
+      const MaterialColors = [
+        '#FF5722',
+        '#E91E63',
+        '#9C27B0',
+        '#673AB7',
+        '#3F51B5',
+        '#2196F3',
+        '#03A9F4',
+        '#00BCD4',
+        '#009688',
+        '#4CAF50',
+        '#8BC34A',
+      ]
+
+      let currentIndex = 0
+
+      // Calculate the center of the path
+      const pathX = (minMax.minX + minMax.maxX) / 2
+      const pathY = (minMax.minY + minMax.maxY) / 2
+
+      // Calculate the center of the canvas
+      const pathCenterX = ((minMax.maxX - minMax.minX) * 3) / 2
+      const pathCenterY = ((minMax.maxY - minMax.minY) * 3) / 2
+
+      // Determine the offset to shift the starting point to center the canvas
+      const offsetX = pathCenterX - pathX
+      const offsetY = pathCenterY - pathY
+
+      let [x, y] = [offsetX, offsetY]
 
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
       ctx.beginPath()
       ctx.moveTo(x, y)
 
       const stepThroughPath = () => {
-        if (currentRow >= path.length || !drawNext) {
+        if (currentIndex >= pathSegments.length) {
           return
         }
 
-        const currentRowData = path[currentRow]
+        const segment = pathSegments[currentIndex]
+        const char = segment.char
+        const direction = segment.direction
 
-        if (currentColumn >= currentRowData.length) {
-          currentRow++
-          currentColumn = 0
-          return (animationRef.current = requestAnimationFrame(stepThroughPath)) // Go to next row
-        }
-
-        const char = currentRowData[currentColumn]
-        setPathCharacters(char)
-        if (/[A-Z]/.test(char)) setWord(char)
-
-        // Draw letter if uppercase
-        if (/[A-Z@x]/.test(char)) {
+        if (char === '@') {
           ctx.font = '20px Arial'
           ctx.fillStyle = MaterialColors[Math.floor(Math.random() * MaterialColors.length)]
-          const textX = direction === 'down' || direction === 'up' ? x + 4 : x
-          const textY = direction === 'right' || direction === 'left' ? y - 4 : y
-          ctx.fillText(char, textX, textY)
+          ctx.fillText(char, x + 4, y - 6)
         }
 
-        // Move based on character
-        switch (char) {
-          case '-':
-          case '|':
-          case char.match(/[A-Z]/)?.input:
-            if (direction === 'right') x += cellSize
-            else if (direction === 'left') x -= cellSize
-            else if (direction === 'down') y += cellSize
-            else if (direction === 'up') y -= cellSize
+        // Move based on direction
+        switch (direction) {
+          case 'RIGHT':
+            x += cellSize
             break
-          case '+':
-            if (direction === 'right') x += cellSize
-            else if (direction === 'left') x -= cellSize
-            else if (direction === 'down') y += cellSize
-            else if (direction === 'up') y -= cellSize
-
-            ctx.lineTo(x, y)
-
-            // Change direction
-            direction =
-              direction === 'right'
-                ? 'down'
-                : direction === 'down'
-                  ? 'left'
-                  : direction === 'left'
-                    ? 'up'
-                    : 'right'
-
-            if (direction === 'right') x += cellSize
-            else if (direction === 'left') x -= cellSize
-            else if (direction === 'down') y += cellSize
-            else if (direction === 'up') y -= cellSize
+          case 'LEFT':
+            x -= cellSize
             break
-          default:
+          case 'DOWN':
+            y += cellSize
             break
+          case 'UP':
+            y -= cellSize
+            break
+        }
+
+        if (/[A-Zx]/.test(char) && !segment.skipDraw) {
+          ctx.font = '20px Arial'
+          ctx.fillStyle = MaterialColors[Math.floor(Math.random() * MaterialColors.length)]
+          const nextSign = pathSegments[currentIndex + 1]?.position.sign
+          const sign = pathSegments[currentIndex]?.position.sign
+          const isCorner = (sign === '|' && nextSign === '-') || (sign === '-' && nextSign === '|')
+          const textX = direction === 'UP' || direction === 'DOWN' || isCorner ? x + 4 : x
+          const textY = direction === 'RIGHT' || direction === 'LEFT' || isCorner ? y - 4 : y
+          ctx.fillText(char, textX, textY)
         }
 
         ctx.lineTo(x, y)
         ctx.stroke()
 
-        currentColumn++
+        currentIndex++
         setTimeout(() => {
-          animationRef.current = requestAnimationFrame(stepThroughPath) // Move to next character
-        }, 1000 / 60) // 60 FPS limit
+          animationRef.current = requestAnimationFrame(stepThroughPath)
+        }, 1000 / 60)
       }
 
       animationRef.current = requestAnimationFrame(stepThroughPath)
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [path],
+    [pathSegments],
   )
 
   useEffect(() => {
     const canvas = canvasRef.current
     const ctx = canvas?.getContext('2d')
-    if (!ctx) return
+    if (!ctx || !pathSegments) return
 
     drawPathAnimated(ctx)
 
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current)
     }
-  }, [drawPathAnimated])
+  }, [drawPathAnimated, pathSegments])
 
   return (
     <canvas
       ref={canvasRef}
       data-testid="path-canvas"
-      width={minMax.maxX - minMax.minX + 50}
-      height={minMax.maxY - minMax.minY + 100}
-    ></canvas>
+      width={(minMax.maxX - minMax.minX) * 3}
+      height={(minMax.maxY - minMax.minY) * 3}
+    />
   )
 }
 

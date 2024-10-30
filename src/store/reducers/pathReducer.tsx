@@ -1,18 +1,20 @@
 import { PathAction, PathState } from '@/types/types'
 
 const initialState: PathState = {
-  word: '',
-  pathCharacters: '',
+  letters: '',
+  pathSegments: [],
   loading: true,
   errorMessage: '',
 }
 
 const pathReducer = (state: PathState, action: PathAction): PathState => {
   switch (action.type) {
-    case 'SET_WORD':
-      return { ...state, word: state.word + action.payload }
-    case 'SET_PATH_CHARACTERS':
-      return { ...state, pathCharacters: state.pathCharacters + action.payload }
+    case 'SET_PATH_RESULT':
+      return {
+        ...state,
+        letters: action.payload.letters,
+        pathSegments: action.payload.pathSegments,
+      }
     case 'SET_LOADING':
       return { ...state, loading: action.payload }
     case 'SET_ERROR':

@@ -13,16 +13,35 @@ describe('pathReducer', () => {
     expect(newState.loading).toBe(false)
   })
 
-  it('should set word', () => {
-    const action = { type: 'SET_WORD', payload: 'A' } as PathAction
+  it('should set letters', () => {
+    const action = {
+      type: 'SET_PATH_RESULT',
+      payload: {
+        letters: 'A',
+        pathSegments: [],
+      },
+    } as PathAction
     const newState = pathReducer(initialState, action)
-    expect(newState.word).toBe('A')
+    expect(newState.letters).toBe('A')
   })
 
   it('should set path characters', () => {
-    const action = { type: 'SET_PATH_CHARACTERS', payload: 'AB' } as PathAction
+    const pathSegments = [
+      { char: '@', direction: 'RIGHT', position: { row: 0, col: 0, sign: '@' } },
+      { char: 'A', direction: 'RIGHT', position: { row: 0, col: 1, sign: '-' } },
+      { char: 'B', direction: 'RIGHT', position: { row: 0, col: 2, sign: '-' } },
+      { char: 'x', direction: 'RIGHT', position: { row: 0, col: 3, sign: 'x' } },
+    ]
+
+    const action = {
+      type: 'SET_PATH_RESULT',
+      payload: {
+        letters: 'AB',
+        pathSegments,
+      },
+    } as PathAction
     const newState = pathReducer(initialState, action)
-    expect(newState.pathCharacters).toBe('AB')
+    expect(newState.pathSegments).toBe(pathSegments)
   })
 
   it('should set error message', () => {

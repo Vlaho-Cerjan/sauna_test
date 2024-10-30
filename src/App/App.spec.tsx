@@ -66,11 +66,11 @@ describe('App Component', () => {
     expect(mockContext?.lineTo).toHaveBeenCalled()
     expect(mockContext?.stroke).toHaveBeenCalled()
     await waitFor(() =>
-      expect(screen.getByTestId('path-word')).toHaveTextContent('Path Word: HELLOWORLD'),
+      expect(screen.getByTestId('path-letters')).toHaveTextContent('Letters: HELLOWORLD'),
     )
     await waitFor(() =>
       expect(screen.getByTestId('path-characters')).toHaveTextContent(
-        'Path Characters: @--H----E----+|L||L||||||+--O-+|W|O|+--R--+|LDx',
+        'Path Characters: @|H-E+LL+-O--+WORLDx',
       ),
     )
   })
@@ -99,6 +99,6 @@ describe('App Component', () => {
     render(<App />)
 
     await waitFor(() => expect(screen.getByTestId('path-error')).toBeInTheDocument())
-    expect(screen.getByTestId('path-error').textContent).toBe("Path must start with '@'")
+    expect(screen.getByTestId('path-error').textContent).toBe('No start position found')
   })
 })

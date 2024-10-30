@@ -1,156 +1,83 @@
 // PathCanvas.test.tsx
+import '@testing-library/jest-dom'
 import { render, screen, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 
 import PathCanvas from '@/components/pathCanvas/pathCanvas'
-import { Bounds } from '@/types/types'
+import { Bounds, PathSegment } from '@/types/types'
 
-// Mocking the CanvasRenderingContext2D globally
-beforeEach(() => {
-  const mockGetContext = vi.fn().mockReturnValue({
-    fillText: vi.fn(),
+// Define sample test data
+const pathSegments: PathSegment[] = [
+  { char: '@', direction: 'RIGHT', position: { row: 0, col: 0, sign: '@' } },
+  { char: 'A', direction: 'RIGHT', position: { row: 0, col: 1, sign: '-' } },
+  { char: 'B', direction: 'RIGHT', position: { row: 1, col: 2, sign: '-' } },
+  { char: 'x', direction: 'UP', position: { row: 0, col: 3, sign: 'x' } },
+]
+
+const minMax: Bounds = { minX: 0, maxX: 3, minY: 0, maxY: 3 }
+
+describe('PathCanvas Component', () => {
+  // Mock the 2D context
+  const mockCtx = {
     clearRect: vi.fn(),
+    beginPath: vi.fn(),
     moveTo: vi.fn(),
     lineTo: vi.fn(),
     stroke: vi.fn(),
-    beginPath: vi.fn(),
-    canvas: {
-      width: 300,
-      height: 300,
-    },
+    fillText: vi.fn(),
+    canvas: { width: 0, height: 0 },
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks() // Clear mocks before each test
+    // Mock the canvas getContext function
+    HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue(mockCtx)
   })
 
-  // Mock the getContext method to return the mocked context
-  HTMLCanvasElement.prototype.getContext = mockGetContext
-})
-
-afterEach(() => {
-  // Reset mocks after each test
-  vi.restoreAllMocks()
-})
-
-describe('PathCanvas component', () => {
-  it('renders canvas and initializes context', () => {
-    const path = [
-      ['@', '-', 'A', '+'],
-      ['|', ' ', ' ', 'x'],
-    ]
-    const mockBounds: Bounds = { minX: 0, minY: 0, maxX: 100, maxY: 100 }
-    const mockSetWord = vi.fn()
-    const mockSetPathCharacters = vi.fn()
-
-    render(
-      <PathCanvas
-        path={path}
-        MaterialColors={['#FF5722', '#E91E63']}
-        minMax={mockBounds}
-        setWord={mockSetWord}
-        setPathCharacters={mockSetPathCharacters}
-      />,
-    )
-
-    // Check if the canvas is rendered
-    const canvas: HTMLCanvasElement = screen.getByTestId('path-canvas')
+  it('renders the canvas element', () => {
+    render(<PathCanvas pathSegments={pathSegments} minMax={minMax} />)
+    const canvas = screen.getByTestId('path-canvas')
     expect(canvas).toBeInTheDocument()
-    expect(canvas.width).toBe(mockBounds.maxX - mockBounds.minX + 50)
-    expect(canvas.height).toBe(mockBounds.maxY - mockBounds.minY + 100)
-
-    // Check that the mocked getContext was called
-    const mockContext = canvas.getContext('2d')
-    expect(mockContext?.clearRect).toHaveBeenCalled()
-    expect(mockContext?.beginPath).toHaveBeenCalled()
+    expect(canvas).toHaveAttribute('width', `${(minMax.maxX - minMax.minX) * 3}`)
+    expect(canvas).toHaveAttribute('height', `${(minMax.maxY - minMax.minY) * 3}`)
   })
 
-  it('draws the path and updates the word and characters', async () => {
-    const path = [
-      ['@', '-', 'A', '+'],
-      ['|', ' ', ' ', 'x'],
-    ]
-    const mockBounds: Bounds = { minX: 0, minY: 0, maxX: 100, maxY: 100 }
-    const mockSetWord = vi.fn()
-    const mockSetPathCharacters = vi.fn()
-
-    render(
-      <PathCanvas
-        path={path}
-        MaterialColors={['#FF5722', '#E91E63']}
-        minMax={mockBounds}
-        setWord={mockSetWord}
-        setPathCharacters={mockSetPathCharacters}
-      />,
-    )
-
-    // Check if the context methods are called as expected
-    const canvas: HTMLCanvasElement = screen.getByTestId('path-canvas')
-    const mockContext = canvas.getContext('2d')
-
-    expect(mockContext?.moveTo).toHaveBeenCalled()
-    await waitFor(() => expect(mockContext?.lineTo).toHaveBeenCalled())
-    await waitFor(() => expect(mockContext?.stroke).toHaveBeenCalled())
-
-    // Check that setWord and setPathCharacters were called correctly
-    expect(mockSetWord).toHaveBeenCalledWith('A')
-    expect(mockSetPathCharacters).toHaveBeenCalled()
+  it('calls canvas context methods to draw path', async () => {
+    render(<PathCanvas pathSegments={pathSegments} minMax={minMax} />)
+    // Ensure the canvas context is cleared and path is started
+    expect(mockCtx.clearRect).toHaveBeenCalled()
+    expect(mockCtx.beginPath).toHaveBeenCalled()
+    expect(mockCtx.moveTo).toHaveBeenCalled()
+    await waitFor(() => {
+      expect(mockCtx.stroke).toHaveBeenCalled()
+    })
   })
 
-  it('animates the path correctly with different directions', async () => {
-    const path = [
-      ['@', '-', 'A', '+'],
-      ['|', 'B', '|', '+'],
-      ['-', 'C', '-', '+'],
-      ['|', 'D', '|', '+'],
-      ['-', 'E', 'F', 'x'],
-    ]
-    const mockBounds: Bounds = { minX: 0, minY: 0, maxX: 200, maxY: 200 }
-    const mockSetWord = vi.fn()
-    const mockSetPathCharacters = vi.fn()
+  it('animates the path on the canvas', async () => {
+    render(<PathCanvas pathSegments={pathSegments} minMax={minMax} />)
 
-    render(
-      <PathCanvas
-        path={path}
-        MaterialColors={['#FF5722', '#E91E63']}
-        minMax={mockBounds}
-        setWord={mockSetWord}
-        setPathCharacters={mockSetPathCharacters}
-      />,
-    )
-
-    // Verify that the path follows the direction
-    const canvas: HTMLCanvasElement = screen.getByTestId('path-canvas')
-    const mockContext = canvas.getContext('2d')
-
-    // Check that the line drawing and path-changing logic is working
-    expect(mockContext?.moveTo).toHaveBeenCalledWith(10, 50)
-    await waitFor(() => expect(mockContext?.lineTo).toHaveBeenCalled())
-    await waitFor(() => expect(mockContext?.stroke).toHaveBeenCalled())
+    // Expect fillText to be called for each character with the correct coordinates
+    await waitFor(() => {
+      expect(mockCtx.fillText).toHaveBeenCalledWith('@', expect.any(Number), expect.any(Number))
+      expect(mockCtx.fillText).toHaveBeenCalledWith('A', expect.any(Number), expect.any(Number))
+      expect(mockCtx.fillText).toHaveBeenCalledWith('B', expect.any(Number), expect.any(Number))
+      expect(mockCtx.fillText).toHaveBeenCalledWith('x', expect.any(Number), expect.any(Number))
+    })
   })
 
-  it('handles errors gracefully', () => {
-    const path = [
-      ['-', 'A'],
-      ['|', 'x'],
-    ] // Missing '@'
-    const mockBounds: Bounds = { minX: 0, minY: 0, maxX: 100, maxY: 100 }
-    const mockSetWord = vi.fn()
-    const mockSetPathCharacters = vi.fn()
+  it('draws only the defined segments on the canvas', () => {
+    render(<PathCanvas pathSegments={pathSegments} minMax={minMax} />)
 
-    render(
-      <PathCanvas
-        path={path}
-        MaterialColors={['#FF5722', '#E91E63']}
-        minMax={mockBounds}
-        setWord={mockSetWord}
-        setPathCharacters={mockSetPathCharacters}
-      />,
-    )
-
-    const canvas: HTMLCanvasElement = screen.getByTestId('path-canvas')
-    const mockContext = canvas.getContext('2d')
-
-    // Ensure the canvas is cleared when the path is invalid
-    expect(mockContext?.clearRect).toHaveBeenCalled()
-    expect(mockContext?.moveTo).toHaveBeenCalledOnce()
-    // Verify that no drawing functions were called due to error
-    expect(mockContext?.lineTo).not.toHaveBeenCalled()
+    pathSegments.forEach(async (segment) => {
+      if (/[A-Zx@]/.test(segment.char)) {
+        await waitFor(() => {
+          expect(mockCtx.fillText).toHaveBeenCalledWith(
+            segment.char,
+            expect.any(Number),
+            expect.any(Number),
+          )
+        })
+      }
+    })
   })
 })

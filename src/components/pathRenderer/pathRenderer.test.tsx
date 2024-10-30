@@ -26,42 +26,40 @@ describe('PathRenderer Component', () => {
   })
 
   it('renders the loading spinner initially', () => {
-    render(<PathRenderer path={[['@', '-', 'x']]} />)
+    render(<PathRenderer map={[['@', '-', 'x']]} />)
     expect(screen.getByTestId('path-loading')).toBeInTheDocument()
   })
 
   it('renders PathCanvas and PathWordDisplay when loading is complete', async () => {
-    render(<PathRenderer path={[['@', '-', 'x']]} />)
+    render(<PathRenderer map={[['@', '-', 'x']]} />)
 
     await waitFor(() => expect(screen.getByTestId('path-canvas')).toBeInTheDocument())
-    expect(screen.getByTestId('path-word')).toHaveTextContent('Path Word:')
+    expect(screen.getByTestId('path-letters')).toHaveTextContent('Letters:')
   })
 
   it('renders PathCanvas and PathWordDisplay with correct word and path characters', async () => {
     render(
       <PathRenderer
-        path={[
+        map={[
           ['@', '-', 'A', 'B', 'C', '+'],
-          ['D', 'E', '|', 'x'],
+          [' ', ' ', ' ', 'x', 'E', 'D'],
         ]}
       />,
     )
 
     await waitFor(() => expect(screen.getByTestId('path-canvas')).toBeInTheDocument())
     await waitFor(() =>
-      expect(screen.getByTestId('path-word')).toHaveTextContent('Path Word: ABCDE'),
+      expect(screen.getByTestId('path-letters')).toHaveTextContent('Letters: ABCDE'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('path-characters')).toHaveTextContent(
-        'Path Characters: @-ABC+DE|x',
-      ),
+      expect(screen.getByTestId('path-characters')).toHaveTextContent('Path Characters: @-ABC+DEx'),
     )
   })
 
   it('displays an error when path validation fails', async () => {
-    render(<PathRenderer path={[['-', 'x']]} />)
+    render(<PathRenderer map={[['-', 'x']]} />)
 
     await waitFor(() => expect(screen.getByTestId('path-error')).toBeInTheDocument())
-    expect(screen.getByTestId('path-error')).toHaveTextContent("Path must start with '@'")
+    expect(screen.getByTestId('path-error')).toHaveTextContent('No start position found')
   })
 })

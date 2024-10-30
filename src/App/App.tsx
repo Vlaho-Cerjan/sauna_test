@@ -7,7 +7,7 @@ const App = () => {
   return (
     <div className="App">
       <div className="flex">
-        <PathRenderer path={path} />
+        <PathRenderer map={path} />
       </div>
     </div>
   )

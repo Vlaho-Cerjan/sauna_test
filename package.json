@@ -45,7 +45,7 @@
     "bun": "^1.1.x"
   },
   "dependencies": {
-    "react": "^18.x",
+    "react": "^19.x",
     "react-dom": "^18.x"
   },
   "devDependencies": {
@@ -58,7 +58,7 @@
     "@testing-library/user-event": "^14.x",
     "@trivago/prettier-plugin-sort-imports": "^4.x",
     "@types/bun": "^1.x",
-    "@types/react": "^18.x",
+    "@types/react": "^19.x",
     "@types/react-dom": "^18.x",
     "@typescript-eslint/eslint-plugin": "^7.x",
     "@typescript-eslint/parser": "^7.x",
